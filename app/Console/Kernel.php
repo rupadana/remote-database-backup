@@ -12,9 +12,9 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule): void
     {
-        $schedule->command('db:backup "0 0 * * *"')->daily();
-        $schedule->command('db:backup "0 * * * *"')->hourly();
-        $schedule->command('db:backup "* * * * *"')->everyMinute();
+        $schedule->command('db:backup "0 0 * * *"')->daily()->name('backup: daily');
+        $schedule->command('db:backup "0 * * * *"')->hourly()->name('backup: hourly');
+        $schedule->command('db:backup "* * * * *"')->everyMinute()->name('backup: every minute');
     }
 
     /**
