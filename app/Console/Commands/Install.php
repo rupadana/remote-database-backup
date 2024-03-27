@@ -49,8 +49,6 @@ class Install extends Command
         $user->roles()->attach($superAdminRole);
         $user->roles()->attach($panel_user);
 
-        // dd($user->roles);
-
-
+        $this->info('Successfully Installed');
     }
 }
