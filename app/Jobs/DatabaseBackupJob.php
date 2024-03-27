@@ -19,7 +19,6 @@ class DatabaseBackupJob implements ShouldQueue
      */
     public function __construct(protected int $databaseId)
     {
-
     }
 
     /**
@@ -34,7 +33,7 @@ class DatabaseBackupJob implements ShouldQueue
 
             if ($data['type'] === 'mysql') {
                 $data = $this->backupMysql($data['data']);
-                if($data) {
+                if ($data) {
                     $record->backup_histories()->create([
                         'path' => $data['path'],
                         'filename' => $data['filename'],
@@ -53,7 +52,7 @@ class DatabaseBackupJob implements ShouldQueue
         $path = storage_path() . "/databases";
 
         $command = "mysqldump --user=" . $data['username'] . " --password=" . $data['password']
-            . " --host=" . $data['password'] . " " . $data['database']
+            . " --host=" . $data['host'] . " " . $data['database']
             . "  | gzip > " . $path . '/' . $filename;
 
         $returnVar = NULL;
@@ -67,5 +66,3 @@ class DatabaseBackupJob implements ShouldQueue
         ];
     }
 }
-
-
