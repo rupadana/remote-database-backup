@@ -16,7 +16,9 @@
         "laravel/framework": "^10.10",
         "laravel/sanctum": "^3.3",
         "laravel/tinker": "^2.8",
-        "rupadana/filament-user-resource": "^1.0"
+        "mvenghaus/filament-plugin-schedule-monitor": "^3.0",
+        "rupadana/filament-user-resource": "^1.0",
+        "spatie/laravel-schedule-monitor": "^3.7"
     },
     "require-dev": {
         "fakerphp/faker": "^1.9.1",

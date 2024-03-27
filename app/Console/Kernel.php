@@ -14,6 +14,7 @@ class Kernel extends ConsoleKernel
     {
         $schedule->command('db:backup "0 0 * * *"')->daily();
         $schedule->command('db:backup "0 * * * *"')->hourly();
+        $schedule->command('db:backup "* * * * *"')->everyMinute();
     }
 
     /**

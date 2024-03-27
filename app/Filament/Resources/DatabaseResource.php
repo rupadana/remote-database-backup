@@ -32,8 +32,9 @@ class DatabaseResource extends Resource
                     ->required(),
                 Select::make('cron')
                     ->options([
+                        '* * * * *' => 'Every Minute',
+                        '0 * * * *' => 'Every Hour',
                         '0 0 * * *' => 'Every 00:00',
-                        '0 * * * *' => 'Every Hour'
                     ]),
                 Builder::make('data')
                     ->blocks([
