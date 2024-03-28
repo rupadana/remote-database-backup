@@ -44,6 +44,10 @@ class BackupHistory extends ManageRelatedRecords
                 Tables\Columns\TextColumn::make('created_at')
             ])
             ->actions([
+                Tables\Actions\Action::make('download')
+                    ->label('Download')
+                    ->openUrlInNewTab()
+                    ->url(fn(\App\Models\BackupHistory $record) => url('/download/' . $record->filename)),
                 Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([

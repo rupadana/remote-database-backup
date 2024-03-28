@@ -48,7 +48,9 @@ class DatabaseResource extends Resource
                                     ->required(),
                                 TextInput::make('username')
                                     ->required(),
-                                TextInput::make('password'),
+                                TextInput::make('password')
+                                    ->password()
+                                    ->revealable(),
                             ])
                     ])
                     ->maxItems(1)
@@ -76,7 +78,8 @@ class DatabaseResource extends Resource
                     })
                     ->beforeReplicaSaved(function (Database $replica, array $data) {
                         $replica->fill($data);
-                    })
+                    }),
+
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
