@@ -46,8 +46,8 @@ class BackupHistory extends ManageRelatedRecords
             ->actions([
                 Tables\Actions\Action::make('download')
                     ->label('Download')
-                    ->openUrlInNewTab()
-                    ->url(fn(\App\Models\BackupHistory $record) => url('/download/' . $record->filename)),
+                    ->url(fn(\App\Models\BackupHistory $record) => url('/download/' . $record->filename))
+                    ->openUrlInNewTab(),
                 Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([
