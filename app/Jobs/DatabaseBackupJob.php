@@ -51,7 +51,7 @@ class DatabaseBackupJob implements ShouldQueue
         $filename = $data['database'] . "-backup-" . Carbon::now()->format('Y-m-d_H-i-s') . ".gz";
         $path = storage_path() . "/databases";
 
-        $command = "mysqldump --user=" . $data['username'] . " --password=" . $data['password']
+        $command = "mysqldump --user=" . $data['username'] . " --password=" . $data['password'] . "--port=" . $data['port']
             . " --host=" . $data['host'] . " " . $data['database']
             . "  | gzip > " . $path . '/' . $filename;
 

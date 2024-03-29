@@ -51,6 +51,8 @@ class DatabaseResource extends Resource
                                 TextInput::make('password')
                                     ->password()
                                     ->revealable(),
+                                TextInput::make('port')
+                                    ->default('3306')
                             ])
                     ])
                     ->maxItems(1)
