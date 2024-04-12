@@ -53,6 +53,22 @@ class DatabaseResource extends Resource
                                     ->revealable(),
                                 TextInput::make('port')
                                     ->default('3306')
+                            ]),
+                        Block::make('postgresql')
+                            ->label('PostgreSQL')
+                            ->schema([
+                                TextInput::make('host')
+                                    ->ip()
+                                    ->required(),
+                                TextInput::make('database')
+                                    ->required(),
+                                TextInput::make('username')
+                                    ->required(),
+                                TextInput::make('password')
+                                    ->password()
+                                    ->revealable(),
+                                TextInput::make('port')
+                                    ->default('5432')
                             ])
                     ])
                     ->maxItems(1)

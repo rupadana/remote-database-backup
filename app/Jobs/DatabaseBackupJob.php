@@ -9,6 +9,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use function Pest\Laravel\put;
 
 class DatabaseBackupJob implements ShouldQueue
 {
@@ -75,13 +76,13 @@ class DatabaseBackupJob implements ShouldQueue
     {
         $filename = $data['database'] . "-backup-" . Carbon::now()->format('Y-m-d_H-i-s') . ".gz";
         $path = storage_path() . "/databases";
-
-        $command = "PGPASSWORD=" . $data['password'] . " pg_dump --username=" . $data['username'] . " --port=" . $data['port']
+        putenv('PGPASSWORD=' . $data['password']);
+        $command = "pg_dump --username=" . $data['username'] . " --port=" . $data['port']
             . " --host=" . $data['host'] . " -d " . $data['database']
             . "  | gzip > " . $path . '/' . $filename;
         $returnVar = NULL;
         $output = NULL;
-
+        putenv('PGPASSWORD=');
 
         exec($command, $output, $returnVar);
 
