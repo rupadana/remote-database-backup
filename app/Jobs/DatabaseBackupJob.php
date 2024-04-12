@@ -82,9 +82,10 @@ class DatabaseBackupJob implements ShouldQueue
             . "  | gzip > " . $path . '/' . $filename;
         $returnVar = NULL;
         $output = NULL;
+        exec($command, $output, $returnVar);
         putenv('PGPASSWORD=');
 
-        exec($command, $output, $returnVar);
+
 
         return [
             'path' => $path,
