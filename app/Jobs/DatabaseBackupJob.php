@@ -77,7 +77,7 @@ class DatabaseBackupJob implements ShouldQueue
         $filename = $data['database'] . "-backup-" . Carbon::now()->format('Y-m-d_H-i-s') . ".gz";
         $path = storage_path() . "/databases";
         putenv('PGPASSWORD=' . $data['password']);
-        $command = "pg_dump --username=" . $data['username'] . " --port=" . $data['port']
+        $command = 'PGPASSWORD=' . $data['password'] . " pg_dump --username=" . $data['username'] . " --port=" . $data['port']
             . " --host=" . $data['host'] . " -d " . $data['database']
             . "  | gzip > " . $path . '/' . $filename;
         $returnVar = NULL;
