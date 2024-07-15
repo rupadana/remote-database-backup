@@ -13,15 +13,14 @@ class Database extends Model
     protected $fillable = [
         'name',
         'cron',
-        'data'
+        'data',
     ];
-
 
     protected $casts = [
-        'data' => 'array'
+        'data' => 'array',
     ];
 
-    public function backup_histories() : HasMany
+    public function backup_histories(): HasMany
     {
         return $this->hasMany(BackupHistory::class, 'database_id');
     }

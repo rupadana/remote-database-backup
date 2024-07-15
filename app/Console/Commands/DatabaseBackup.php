@@ -4,9 +4,7 @@ namespace App\Console\Commands;
 
 use App\Jobs\DatabaseBackupJob;
 use App\Models\Database;
-use Carbon\Carbon;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Storage;
 
 class DatabaseBackup extends Command
 {
@@ -33,7 +31,7 @@ class DatabaseBackup extends Command
 
         $databases = Database::query();
 
-        if($cron !== 'now') {
+        if ($cron !== 'now') {
             $databases = $databases->where('cron', $cron);
         }
 

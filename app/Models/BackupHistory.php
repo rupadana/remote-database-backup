@@ -13,9 +13,8 @@ class BackupHistory extends Model
         'path',
         'filename',
         'is_pruned',
-        'database_id'
+        'database_id',
     ];
-
 
     protected $casts = [
         'is_pruned' => 'boolean',

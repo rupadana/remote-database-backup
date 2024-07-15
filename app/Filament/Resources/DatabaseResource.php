@@ -4,11 +4,10 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\DatabaseResource\Actions\DatabaseBackupAction;
 use App\Filament\Resources\DatabaseResource\Pages;
-use App\Filament\Resources\DatabaseResource\RelationManagers;
+use App\Filament\Resources\DatabaseResource\Services\Backup\AbstractBackupRunner;
+use App\Filament\Resources\DatabaseResource\Services\Backup\BackupRunner;
 use App\Models\Database;
-use Filament\Forms;
 use Filament\Forms\Components\Builder;
-use Filament\Forms\Components\Builder\Block;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
@@ -16,7 +15,6 @@ use Filament\Resources\Pages\Page;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-
 
 class DatabaseResource extends Resource
 {
@@ -37,41 +35,17 @@ class DatabaseResource extends Resource
                         '0 0 * * *' => 'Every 00:00',
                     ]),
                 Builder::make('data')
-                    ->blocks([
-                        Block::make('mysql')
-                            ->label('MySQL')
-                            ->schema([
-                                TextInput::make('host')
-                                    ->ip()
-                                    ->required(),
-                                TextInput::make('database')
-                                    ->required(),
-                                TextInput::make('username')
-                                    ->required(),
-                                TextInput::make('password')
-                                    ->password()
-                                    ->revealable(),
-                                TextInput::make('port')
-                                    ->default('3306')
-                            ]),
-                        Block::make('postgresql')
-                            ->label('PostgreSQL')
-                            ->schema([
-                                TextInput::make('host')
-                                    ->ip()
-                                    ->required(),
-                                TextInput::make('database')
-                                    ->required(),
-                                TextInput::make('username')
-                                    ->required(),
-                                TextInput::make('password')
-                                    ->password()
-                                    ->revealable(),
-                                TextInput::make('port')
-                                    ->default('5432')
-                            ])
-                    ])
-                    ->maxItems(1)
+                    ->blocks(
+                        collect(BackupRunner::all())
+                            ->map(
+                                /**
+                                 * @var AbstractBackupRunner $runner
+                                 */
+                                fn (string $runner) => $runner::getFilamentBlockBuilder()
+                            )
+                            ->toArray()
+                    )
+                    ->maxItems(1),
             ]);
     }
 
@@ -84,12 +58,12 @@ class DatabaseResource extends Resource
                     ->searchable(),
                 Tables\Columns\TextColumn::make('cron')
                     ->sortable()
-                    ->searchable()
+                    ->searchable(),
 
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
-                DatabaseBackupAction:: make(),
+                DatabaseBackupAction::make(),
                 Tables\Actions\ReplicateAction::make()
                     ->form(function (Form $form) {
                         return DatabaseResource::form($form);
@@ -120,7 +94,7 @@ class DatabaseResource extends Resource
     {
         return $page->generateNavigationItems([
             Pages\EditDatabase::class,
-            Pages\BackupHistory::class
+            Pages\BackupHistory::class,
         ]);
     }
 }

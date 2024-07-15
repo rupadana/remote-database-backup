@@ -3,14 +3,11 @@
 namespace App\Filament\Resources\DatabaseResource\Pages;
 
 use App\Filament\Resources\DatabaseResource;
-use Filament\Actions;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Pages\ManageRelatedRecords;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class BackupHistory extends ManageRelatedRecords
 {
@@ -41,12 +38,12 @@ class BackupHistory extends ManageRelatedRecords
             ->recordTitleAttribute('filename')
             ->columns([
                 Tables\Columns\TextColumn::make('filename'),
-                Tables\Columns\TextColumn::make('created_at')
+                Tables\Columns\TextColumn::make('created_at'),
             ])
             ->actions([
                 Tables\Actions\Action::make('download')
                     ->label('Download')
-                    ->url(fn(\App\Models\BackupHistory $record) => url('/download/' . $record->filename))
+                    ->url(fn (\App\Models\BackupHistory $record) => url('/download/'.$record->filename))
                     ->openUrlInNewTab(),
                 Tables\Actions\DeleteAction::make(),
             ])

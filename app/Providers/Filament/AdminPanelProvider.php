@@ -44,7 +44,7 @@ class AdminPanelProvider extends PanelProvider
                 FilamentShieldPlugin::make(),
                 FilamentUserResourcePlugin::make(),
                 FilamentExceptionsPlugin::make(),
-                FilamentPlugin::make()
+                FilamentPlugin::make(),
             ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
             ->widgets([

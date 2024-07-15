@@ -36,16 +36,15 @@ class Install extends Command
             'email' => 'rupadanawayan@gmail.com',
         ], [
             'name' => 'Rupadana',
-            'password' => '12345678'
+            'password' => '12345678',
         ]);
-
 
         $panel_user = Role::updateOrCreate([
             'name' => 'panel_user',
-            'guard_name' => 'web'
+            'guard_name' => 'web',
         ]);
         $superAdminRole = Role::find(1);
-        
+
         $user->roles()->attach($superAdminRole);
         $user->roles()->attach($panel_user);
 

@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('databases', function (Blueprint $table) {
             $table->id();
             $table->string('name')->nullable();
-            $table->string('cron')->default("0 0 * * *");
+            $table->string('cron')->default('0 0 * * *');
             $table->text('data')->nullable();
             $table->timestamps();
         });

@@ -14,7 +14,7 @@ class DatabaseBackupAction extends Action
         $this->name('backup-database');
 
         $this->action(function (Database $record) {
-            DatabaseBackupJob::dispatchSync($record->id);
+            DatabaseBackupJob::dispatch($record->id);
             $this->sendSuccessNotification();
         });
 
@@ -22,6 +22,6 @@ class DatabaseBackupAction extends Action
 
         $this->color('success');
 
-        $this->successNotificationTitle('Successfully Backed Up');
+        $this->successNotificationTitle('Backup scheduled');
     }
 }
