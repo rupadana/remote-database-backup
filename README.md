@@ -1,4 +1,5 @@
 ## About Remote Database Backup
+[![Total Downloads](https://img.shields.io/packagist/dt/rupadana/remote-database-backup.svg?style=flat-square)](https://packagist.org/packages/rupadana/remote-database-backup)
 
 [RDB]() is a web application built using [FilamentPHP v3](https://filamentphp.com/).
 
