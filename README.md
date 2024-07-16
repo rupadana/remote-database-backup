@@ -22,7 +22,7 @@ Clone the repository
 git clone https://github.com/rupadana/remote-database-backup.git
 cd remote-database-backup
 ```
-
+Update your local environment
 
 Running Composer install
 
