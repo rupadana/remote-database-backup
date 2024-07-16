@@ -3,12 +3,10 @@
 [RDB]() is a web application built using [FilamentPHP v3](https://filamentphp.com/).
 
 This tool offers a seamless and secure way to manage and back up your databases remotely. 
-
+****
 With an intuitive user interface, it allows you to schedule backups, and monitor backup with ease.
 
 Designed for efficiency and reliability, [RDB]() is the perfect solution for businesses and developers looking to safeguard their critical data effortlessly.
-
-
 
 
 ## Prerequisites
@@ -19,16 +17,9 @@ You must install `mysql-client` and `postgresql-client` since this project uses 
 Clone the repository
 
 ```bash
-git clone https://github.com/rupadana/remote-database-backup.git
-cd remote-database-backup
+composer create-project rupadana/remote-database-backup
 ```
 Update your local environment
-
-Running Composer install
-
-```bash
-composer install
-```
 
 Run artisan `app:install`
 
