@@ -27,13 +27,14 @@ Run artisan `app:install`
 php artisan app:install
 ```
 
-
-
 Default user
 
 email : rupadana@codecrafters.id
 
 password : 12345678
+
+## Supervisor
+This project must use `supervisorctl` to manage database queues. Make sure you configure it itself.
 
 ## Database Backup Runner
 
