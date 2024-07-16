@@ -1,10 +1,13 @@
 {
-    "name": "laravel/laravel",
+    "name": "rupadana/remote-database-backup",
     "type": "project",
-    "description": "The skeleton application for the Laravel framework.",
+    "description": "Remote Database Backup: Your Data, Securely Backed Up Anytime, Anywhere.\n\n",
     "keywords": [
         "laravel",
-        "framework"
+        "filamentphp",
+        "php",
+        "database",
+        "backup"
     ],
     "license": "MIT",
     "require": {
