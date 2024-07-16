@@ -6,7 +6,6 @@ use App\Jobs\DatabaseBackupJob;
 use App\Models\Database;
 use Filament\Actions\Action;
 
-
 class DatabaseBackupPageAction extends Action
 {
     protected function setUp(): void

@@ -4,7 +4,6 @@ namespace App\Jobs;
 
 use App\Filament\Resources\DatabaseResource\Services\Backup\BackupRunner;
 use App\Models\Database;
-use Carbon\Carbon;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -29,7 +28,6 @@ class DatabaseBackupJob implements ShouldQueue
      */
     public function handle(): void
     {
-        //        dd($this->databaseId);
         $record = Database::find($this->databaseId);
 
         if ($record && $record->data !== null) {
@@ -43,43 +41,5 @@ class DatabaseBackupJob implements ShouldQueue
                 ]);
             }
         }
-    }
-
-    //    protected function backupMysql(array $data): array
-    //    {
-    //        $filename = $data['database'] . "-backup-" . Carbon::now()->format('Y-m-d_H-i-s') . ".gz";
-    //        $path = storage_path() . "/databases";
-    //
-    //        $command = "mysqldump --user=" . $data['username'] . " --password=" . $data['password']
-    //            . " --host=" . $data['host'] . " " . $data['database']
-    //            . "  | gzip > " . $path . '/' . $filename;
-    //        $returnVar = NULL;
-    //        $output = NULL;
-    //
-    //        exec($command, $output, $returnVar);
-    //
-    //        return [
-    //            'path' => $path,
-    //            'filename' => $filename,
-    //        ];
-    //    }
-
-    protected function backupPostgresql(array $data): array
-    {
-        $filename = $data['database'].'-backup-'.Carbon::now()->format('Y-m-d_H-i-s').'.gz';
-        $path = storage_path().'/databases';
-        putenv('PGPASSWORD='.$data['password']);
-        $command = 'PGPASSWORD='.$data['password'].' pg_dump --username='.$data['username'].' --port='.$data['port']
-            .' --host='.$data['host'].' -d '.$data['database']
-            .'  | gzip > '.$path.'/'.$filename;
-        $returnVar = null;
-        $output = null;
-        exec($command, $output, $returnVar);
-        putenv('PGPASSWORD=');
-
-        return [
-            'path' => $path,
-            'filename' => $filename,
-        ];
     }
 }

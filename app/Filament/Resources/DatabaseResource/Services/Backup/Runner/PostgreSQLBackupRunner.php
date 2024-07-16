@@ -27,12 +27,15 @@ class PostgreSQLBackupRunner extends AbstractBackupRunner
 
         putenv('PGPASSWORD='.$options['password']);
 
-        $command = 'PGPASSWORD='.$options['password'].' pg_dump --username='.$options['username'].' --port='.$options['port']
-            .' --host='.$options['host'].' -d '.$options['database']
-            .'  | gzip > '.$path.'/'.$filename;
-        $returnVar = null;
-        $output = null;
-        exec($command, $output, $returnVar);
+        $command = 'PGPASSWORD='.$options['password'].
+            ' pg_dump --username='.$options['username'].
+            ' --port='.$options['port'].
+            ' --host='.$options['host'].
+            ' -d '.$options['database'].
+            '  | gzip > '.$path.'/'.$filename;
+
+        exec($command);
+
         putenv('PGPASSWORD=');
 
         return [
