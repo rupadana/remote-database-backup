@@ -35,13 +35,14 @@ class DatabaseResource extends Resource
                         '0 0 * * *' => 'Every 00:00',
                     ]),
                 Builder::make('data')
+                    ->columnSpanFull()
                     ->blocks(
                         collect(BackupRunner::all())
                             ->map(
                                 /**
                                  * @var AbstractBackupRunner $runner
                                  */
-                                fn (string $runner) => $runner::getFilamentBlockBuilder()
+                                fn (string $runner) => $runner::getFilamentBlockComponent()
                             )
                             ->toArray()
                     )

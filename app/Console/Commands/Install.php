@@ -33,7 +33,7 @@ class Install extends Command
         Artisan::call('exceptions:install');
         shell_exec('Yes | php artisan shield:install --fresh');
         $user = User::updateOrCreate([
-            'email' => 'rupadanawayan@gmail.com',
+            'email' => 'rupadana@codecrafters.id',
         ], [
             'name' => 'Rupadana',
             'password' => '12345678',

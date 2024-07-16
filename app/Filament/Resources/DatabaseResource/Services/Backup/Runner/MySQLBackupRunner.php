@@ -50,7 +50,7 @@ class MySQLBackupRunner extends AbstractBackupRunner
         ];
     }
 
-    public static function getFilamentBlockBuilder(): Block
+    public static function getFilamentBlockComponent(): Block
     {
         return Block::make(static::getName())
             ->label(static::getLabel())

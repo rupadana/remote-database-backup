@@ -13,6 +13,7 @@ class EditDatabase extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
+            DatabaseResource\Actions\DatabaseBackupPageAction::make(),
             Actions\DeleteAction::make(),
         ];
     }

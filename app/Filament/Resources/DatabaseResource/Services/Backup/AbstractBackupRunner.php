@@ -31,5 +31,5 @@ abstract class AbstractBackupRunner
         return static::$name;
     }
 
-    abstract public static function getFilamentBlockBuilder(): Block;
+    abstract public static function getFilamentBlockComponent(): Block;
 }
