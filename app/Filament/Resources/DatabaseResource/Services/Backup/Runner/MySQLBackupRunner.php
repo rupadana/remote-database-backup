@@ -36,13 +36,14 @@ class MySQLBackupRunner extends AbstractBackupRunner
         $path = storage_path().'/databases';
 
         // Construct the command to perform the backup
-        $command = 'mysqldump --user='.$options['username'].
+        $command = env('MYSQL_DUMP_BINARY_PATH').'mysqldump --user='.$options['username'].
             ' --password='.$options['password'].
             ' --host='.$options['host'].
             ' '.$options['database'].
-            '  | gzip > '.$path.'/'.$filename;
+            '  | gzip > '.$path.'/'.$filename.' --no-tablespaces';
 
         // Execute the backup command
+
         exec($command);
 
         // Return the path and filename of the backup
