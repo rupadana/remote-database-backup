@@ -29,15 +29,10 @@ DB_PORT=5432
 DB_DATABASE=mysql_backup
 DB_USERNAME=postgres
 DB_PASSWORD=
-.
-.
-.
 ```
 if you use `mysql` as your database and get this error `mysqldump: command not found` or not save file, you must update your `.env` file with this configuration for example os x m1
+
 ```bash
-.
-.
-.
 MYSQL_DUMP_BINARY_PATH="/opt/homebrew/bin/"
 ```
 
