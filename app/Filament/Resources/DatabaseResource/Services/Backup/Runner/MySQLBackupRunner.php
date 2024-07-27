@@ -35,8 +35,10 @@ class MySQLBackupRunner extends AbstractBackupRunner
         // Define the path to store the backup
         $path = storage_path().'/databases';
 
+        $mysqlDumpPath = config('database.connections.mysql.dump.dump_binary_path');
+
         // Construct the command to perform the backup
-        $command = env('MYSQL_DUMP_BINARY_PATH').'mysqldump --user='.$options['username'].
+        $command = $mysqlDumpPath.'mysqldump --user='.$options['username'].
             ' --password='.$options['password'].
             ' --host='.$options['host'].
             ' '.$options['database'].
