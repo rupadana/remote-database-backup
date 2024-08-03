@@ -12,6 +12,7 @@ class BackupHistory extends Model
     protected $fillable = [
         'path',
         'filename',
+        'filesize',
         'is_pruned',
         'database_id',
     ];

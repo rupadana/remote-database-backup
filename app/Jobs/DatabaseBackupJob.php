@@ -35,9 +35,12 @@ class DatabaseBackupJob implements ShouldQueue
             $runner = BackupRunner::of($data['type'], $data['data'])->run();
 
             if ($runner) {
+                $filesize = filesize($runner['path'] . '/'. $runner['filename']);
+
                 $record->backup_histories()->create([
                     'path' => $runner['path'],
                     'filename' => $runner['filename'],
+                    'filesize' => $filesize,
                 ]);
             }
         }
