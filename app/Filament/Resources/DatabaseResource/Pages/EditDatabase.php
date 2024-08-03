@@ -14,6 +14,7 @@ class EditDatabase extends EditRecord
     {
         return [
             DatabaseResource\Actions\DatabaseBackupPageAction::make(),
+            DatabaseResource\Actions\DatabaseTest::make(),
             Actions\DeleteAction::make(),
         ];
     }
