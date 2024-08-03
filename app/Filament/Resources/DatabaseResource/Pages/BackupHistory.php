@@ -5,6 +5,7 @@ namespace App\Filament\Resources\DatabaseResource\Pages;
 use App\Filament\Resources\DatabaseResource;
 use App\Models\BackupHistory as ModelsBackupHistory;
 use App\Models\Database;
+use Exception;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Pages\ManageRelatedRecords;
@@ -52,14 +53,24 @@ class BackupHistory extends ManageRelatedRecords
                     ->openUrlInNewTab(),
                 Tables\Actions\DeleteAction::make()
                     ->before(function (ModelsBackupHistory $record) {
-                        unlink(storage_path('databases/' . $record->filename));
+                        try {
+                            unlink(storage_path('databases/' . $record->filename));
+                        } catch (Exception $e) {
+                        }
                     }),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make()
                         ->before(function (Collection $records) {
-                            $records->each(fn (ModelsBackupHistory $record) => unlink(storage_path('databases/' . $record->filename)));
+                            $records->each(
+                                function (ModelsBackupHistory $record) {
+                                    try {
+                                        unlink(storage_path('databases/' . $record->filename));
+                                    } catch (Exception $e) {
+                                    }
+                                }
+                            );
                         }),
                 ]),
             ])
