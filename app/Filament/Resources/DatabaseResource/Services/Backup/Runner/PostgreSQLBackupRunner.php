@@ -21,20 +21,44 @@ class PostgreSQLBackupRunner extends AbstractBackupRunner
             throw new \Exception('String options are not supported');
         }
 
-        $filename = $options['database'].'-backup-'.Carbon::now()->format('Y-m-d_H-i-s').'.gz';
+        $filename = $options['database'].'-backup-'.Carbon::now()->format('Y-m-d_H-i-s').'.sql.gz';
 
         $path = storage_path().'/databases';
 
+        $sqlFile = $path.'/'.substr($filename, 0, -3);
+
         putenv('PGPASSWORD='.$options['password']);
 
-        $command = 'PGPASSWORD='.$options['password'].
-            ' pg_dump --username='.$options['username'].
-            ' --port='.$options['port'].
-            ' --host='.$options['host'].
-            ' -d '.$options['database'].
-            '  | gzip > '.$path.'/'.$filename;
+        $baseCommand = 'pg_dump --username='.escapeshellarg($options['username']).
+            ' --port='.escapeshellarg($options['port']).
+            ' --host='.escapeshellarg($options['host']).
+            ' -d '.escapeshellarg($options['database']);
 
-        exec($command);
+        $selectedTables = array_values(array_filter($options['tables'] ?? []));
+        $structureOnlyTables = array_values(array_intersect(
+            array_filter($options['structure_only_tables'] ?? []),
+            $selectedTables ?: array_filter($options['structure_only_tables'] ?? [])
+        ));
+
+        if (empty($selectedTables)) {
+            // No selection made: back up the whole database (structure + data)
+            exec($baseCommand.' > '.escapeshellarg($sqlFile));
+        } else {
+            $dataTables = array_diff($selectedTables, $structureOnlyTables);
+
+            if (! empty($structureOnlyTables)) {
+                $tables = implode(' ', array_map(fn ($table) => '-t '.escapeshellarg($table), $structureOnlyTables));
+                exec($baseCommand.' --schema-only '.$tables.' > '.escapeshellarg($sqlFile));
+            }
+
+            if (! empty($dataTables)) {
+                $tables = implode(' ', array_map(fn ($table) => '-t '.escapeshellarg($table), $dataTables));
+                $redirect = file_exists($sqlFile) ? '>>' : '>';
+                exec($baseCommand.' '.$tables.' '.$redirect.' '.escapeshellarg($sqlFile));
+            }
+        }
+
+        exec('gzip -f '.escapeshellarg($sqlFile));
 
         putenv('PGPASSWORD=');
 
@@ -42,6 +66,25 @@ class PostgreSQLBackupRunner extends AbstractBackupRunner
             'path' => $path,
             'filename' => $filename,
         ];
+    }
+
+    public static function listTables(array $options): array
+    {
+        try {
+            $pdo = new \PDO(
+                'pgsql:host='.$options['host'].';port='.($options['port'] ?: 5432).';dbname='.$options['database'],
+                $options['username'],
+                $options['password'],
+                [\PDO::ATTR_TIMEOUT => 5]
+            );
+
+            $stmt = $pdo->query("SELECT tablename FROM pg_tables WHERE schemaname = 'public'");
+            $tables = $stmt->fetchAll(\PDO::FETCH_COLUMN);
+
+            return array_combine($tables, $tables);
+        } catch (\Throwable $e) {
+            return [];
+        }
     }
 
     public static function getFilamentBlockComponent(): Block
@@ -61,6 +104,7 @@ class PostgreSQLBackupRunner extends AbstractBackupRunner
                     ->revealable(),
                 TextInput::make('port')
                     ->default('5432'),
+                ...static::getTableSelectionSchema(),
             ]);
     }
 }
