@@ -45,6 +45,39 @@ abstract class AbstractBackupRunner
     abstract public static function getFilamentBlockComponent(): Block;
 
     /**
+     * Resolve which tables to dump, dropping selections that no longer exist on
+     * the target database (selections copied by a replicate, dropped tables, ...)
+     * so the dump does not abort with "Couldn't find table".
+     *
+     * Both lists empty means "dump the whole database".
+     *
+     * @return array{data: string[], structure: string[]}
+     */
+    protected function resolveTables(array $options): array
+    {
+        $selected = array_filter($options['tables'] ?? []);
+        $structureOnly = array_filter($options['structure_only_tables'] ?? []);
+
+        // Only filter when the table list could actually be read; dumping the
+        // whole database on a transient connection failure would be worse.
+        if ($existing = static::listTables($options)) {
+            $selected = array_intersect($selected, $existing);
+            $structureOnly = array_intersect($structureOnly, $existing);
+        }
+
+        if (empty($selected)) {
+            return ['data' => [], 'structure' => []];
+        }
+
+        $structureOnly = array_intersect($structureOnly, $selected);
+
+        return [
+            'data' => array_values(array_diff($selected, $structureOnly)),
+            'structure' => array_values($structureOnly),
+        ];
+    }
+
+    /**
      * Shared form schema letting the user, after connecting, checklist which
      * tables to include in the backup and which of those should only have
      * their structure (no data) backed up.

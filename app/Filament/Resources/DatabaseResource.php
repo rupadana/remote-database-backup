@@ -80,6 +80,17 @@ class DatabaseResource extends Resource
                         return DatabaseResource::form($form);
                     })
                     ->beforeReplicaSaved(function (Database $replica, array $data) {
+                        // Table checklists belong to the source database; the replica
+                        // points somewhere else, so it starts with "seluruh tabel".
+                        $data['data'] = array_map(function (array $block) {
+                            $block['data'] = array_diff_key(
+                                $block['data'] ?? [],
+                                array_flip(['tables', 'structure_only_tables', 'tables_options'])
+                            );
+
+                            return $block;
+                        }, $data['data'] ?? []);
+
                         $replica->fill($data);
                     }),
 

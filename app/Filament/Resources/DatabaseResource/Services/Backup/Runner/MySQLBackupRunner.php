@@ -43,18 +43,12 @@ class MySQLBackupRunner extends AbstractBackupRunner
             ' --host='.escapeshellarg($options['host']).
             ' --skip-ssl';
 
-        $selectedTables = array_values(array_filter($options['tables'] ?? []));
-        $structureOnlyTables = array_values(array_intersect(
-            array_filter($options['structure_only_tables'] ?? []),
-            $selectedTables ?: array_filter($options['structure_only_tables'] ?? [])
-        ));
+        ['data' => $dataTables, 'structure' => $structureOnlyTables] = $this->resolveTables($options);
 
-        if (empty($selectedTables)) {
+        if (empty($dataTables) && empty($structureOnlyTables)) {
             // No selection made: back up the whole database (structure + data)
             exec($baseCommand.' '.escapeshellarg($options['database']).' > '.escapeshellarg($sqlFile));
         } else {
-            $dataTables = array_diff($selectedTables, $structureOnlyTables);
-
             if (! empty($structureOnlyTables)) {
                 $tables = implode(' ', array_map('escapeshellarg', $structureOnlyTables));
                 exec($baseCommand.' --no-data '.escapeshellarg($options['database']).' '.$tables.' > '.escapeshellarg($sqlFile));
