@@ -30,27 +30,69 @@ class MySQLBackupRunner extends AbstractBackupRunner
         }
 
         // Generate the filename for the backup
-        $filename = $options['database'].'-backup-'.Carbon::now()->format('Y-m-d_H-i-s').'.gz';
+        $filename = $options['database'].'-backup-'.Carbon::now()->format('Y-m-d_H-i-s').'.sql.gz';
 
         // Define the path to store the backup
         $path = storage_path().'/databases';
 
-        // Construct the command to perform the backup
-        $command = 'mariadb-dump --user='.$options['username'].
-            ' --password='.$options['password'].
-            ' --host='.$options['host'].
-            ' --skip-ssl'.
-            ' '.$options['database'].
-            '  | gzip > '.$path.'/'.$filename;
+        $sqlFile = $path.'/'.substr($filename, 0, -3);
 
-        // Execute the backup command
-        exec($command);
+        // Base command shared by all dumps
+        $baseCommand = 'mariadb-dump --user='.escapeshellarg($options['username']).
+            ' --password='.escapeshellarg($options['password']).
+            ' --host='.escapeshellarg($options['host']).
+            ' --skip-ssl';
+
+        $selectedTables = array_values(array_filter($options['tables'] ?? []));
+        $structureOnlyTables = array_values(array_intersect(
+            array_filter($options['structure_only_tables'] ?? []),
+            $selectedTables ?: array_filter($options['structure_only_tables'] ?? [])
+        ));
+
+        if (empty($selectedTables)) {
+            // No selection made: back up the whole database (structure + data)
+            exec($baseCommand.' '.escapeshellarg($options['database']).' > '.escapeshellarg($sqlFile));
+        } else {
+            $dataTables = array_diff($selectedTables, $structureOnlyTables);
+
+            if (! empty($structureOnlyTables)) {
+                $tables = implode(' ', array_map('escapeshellarg', $structureOnlyTables));
+                exec($baseCommand.' --no-data '.escapeshellarg($options['database']).' '.$tables.' > '.escapeshellarg($sqlFile));
+            }
+
+            if (! empty($dataTables)) {
+                $tables = implode(' ', array_map('escapeshellarg', $dataTables));
+                $redirect = file_exists($sqlFile) ? '>>' : '>';
+                exec($baseCommand.' '.escapeshellarg($options['database']).' '.$tables.' '.$redirect.' '.escapeshellarg($sqlFile));
+            }
+        }
+
+        // Compress the dump
+        exec('gzip -f '.escapeshellarg($sqlFile));
 
         // Return the path and filename of the backup
         return [
             'path' => $path,
             'filename' => $filename,
         ];
+    }
+
+    public static function listTables(array $options): array
+    {
+        try {
+            $pdo = new \PDO(
+                'mysql:host='.$options['host'].';port='.($options['port'] ?: 3306).';dbname='.$options['database'],
+                $options['username'],
+                $options['password'],
+                [\PDO::ATTR_TIMEOUT => 5]
+            );
+
+            $tables = $pdo->query('SHOW TABLES')->fetchAll(\PDO::FETCH_COLUMN);
+
+            return array_combine($tables, $tables);
+        } catch (\Throwable $e) {
+            return [];
+        }
     }
 
     public static function getFilamentBlockComponent(): Block
@@ -70,6 +112,7 @@ class MySQLBackupRunner extends AbstractBackupRunner
                     ->revealable(),
                 TextInput::make('port')
                     ->default('3306'),
+                ...static::getTableSelectionSchema(),
             ]);
     }
 }
