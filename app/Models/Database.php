@@ -13,11 +13,13 @@ class Database extends Model
     protected $fillable = [
         'name',
         'cron',
+        'retention_days',
         'data',
     ];
 
     protected $casts = [
         'data' => 'array',
+        'retention_days' => 'integer',
     ];
 
     public function backup_histories(): HasMany
