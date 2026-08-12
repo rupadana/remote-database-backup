@@ -34,6 +34,12 @@ class DatabaseResource extends Resource
                         '0 * * * *' => 'Every Hour',
                         '0 0 * * *' => 'Every 00:00',
                     ]),
+                TextInput::make('retention_days')
+                    ->label('Retensi Backup (hari)')
+                    ->helperText('Backup akan dihapus otomatis setelah sekian hari. Kosongkan untuk menyimpan backup selamanya.')
+                    ->numeric()
+                    ->minValue(1)
+                    ->nullable(),
                 Builder::make('data')
                     ->columnSpanFull()
                     ->blocks(
@@ -60,6 +66,10 @@ class DatabaseResource extends Resource
                 Tables\Columns\TextColumn::make('cron')
                     ->sortable()
                     ->searchable(),
+                Tables\Columns\TextColumn::make('retention_days')
+                    ->label('Retensi (hari)')
+                    ->placeholder('Selamanya')
+                    ->sortable(),
 
             ])
             ->actions([
