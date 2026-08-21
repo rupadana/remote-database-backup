@@ -7,6 +7,7 @@ use Carbon\Carbon;
 use Exception;
 use Filament\Forms\Components\Builder\Block;
 use Filament\Forms\Components\TextInput;
+use Illuminate\Support\Facades\File;
 
 class MySQLBackupRunner extends AbstractBackupRunner
 {
@@ -37,32 +38,41 @@ class MySQLBackupRunner extends AbstractBackupRunner
 
         $sqlFile = $path.'/'.substr($filename, 0, -3);
 
+        // A dump left behind by a previous failed run would otherwise be appended to
+        File::delete($sqlFile);
+
         // Base command shared by all dumps
-        $baseCommand = 'mariadb-dump --user='.escapeshellarg($options['username']).
-            ' --password='.escapeshellarg($options['password']).
+        $baseCommand = 'mariadb-dump'.
+            // Without this, binary/blob columns are written as raw bytes, the dump
+            // stops being valid UTF-8, and importing it fails with an encoding error.
+            ' --hex-blob'.
+            ' --user='.escapeshellarg($options['username']).
             ' --host='.escapeshellarg($options['host']).
+            ' --port='.escapeshellarg($options['port'] ?: '3306').
             ' --skip-ssl';
+
+        $env = ['MYSQL_PWD' => $options['password']];
 
         ['data' => $dataTables, 'structure' => $structureOnlyTables] = $this->resolveTables($options);
 
         if (empty($dataTables) && empty($structureOnlyTables)) {
             // No selection made: back up the whole database (structure + data)
-            exec($baseCommand.' '.escapeshellarg($options['database']).' > '.escapeshellarg($sqlFile));
+            $this->shell($baseCommand.' '.escapeshellarg($options['database']).' > '.escapeshellarg($sqlFile), $env);
         } else {
             if (! empty($structureOnlyTables)) {
                 $tables = implode(' ', array_map('escapeshellarg', $structureOnlyTables));
-                exec($baseCommand.' --no-data '.escapeshellarg($options['database']).' '.$tables.' > '.escapeshellarg($sqlFile));
+                $this->shell($baseCommand.' --no-data '.escapeshellarg($options['database']).' '.$tables.' > '.escapeshellarg($sqlFile), $env);
             }
 
             if (! empty($dataTables)) {
                 $tables = implode(' ', array_map('escapeshellarg', $dataTables));
                 $redirect = file_exists($sqlFile) ? '>>' : '>';
-                exec($baseCommand.' '.escapeshellarg($options['database']).' '.$tables.' '.$redirect.' '.escapeshellarg($sqlFile));
+                $this->shell($baseCommand.' '.escapeshellarg($options['database']).' '.$tables.' '.$redirect.' '.escapeshellarg($sqlFile), $env);
             }
         }
 
         // Compress the dump
-        exec('gzip -f '.escapeshellarg($sqlFile));
+        $this->shell('gzip -f '.escapeshellarg($sqlFile));
 
         // Return the path and filename of the backup
         return [

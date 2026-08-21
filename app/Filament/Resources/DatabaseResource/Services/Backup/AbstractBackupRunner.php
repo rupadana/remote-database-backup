@@ -9,6 +9,7 @@ use Filament\Forms\Components\Hidden;
 use Filament\Forms\Get;
 use Filament\Forms\Set;
 use Filament\Notifications\Notification;
+use Illuminate\Support\Facades\Process;
 
 abstract class AbstractBackupRunner
 {
@@ -43,6 +44,23 @@ abstract class AbstractBackupRunner
     }
 
     abstract public static function getFilamentBlockComponent(): Block;
+
+    /**
+     * Run a dump/compress command, failing loudly.
+     *
+     * exec() ignores the exit status, so a dump that died halfway used to be
+     * recorded as a perfectly good backup. Passwords go through $env so they
+     * never show up in `ps`.
+     *
+     * @param  array<string, string>  $env
+     */
+    protected function shell(string $command, array $env = []): void
+    {
+        Process::env($env)
+            ->timeout(3600) // Laravel defaults to 60s; a real dump takes longer
+            ->run($command)
+            ->throw();
+    }
 
     /**
      * Resolve which tables to dump, dropping selections that no longer exist on

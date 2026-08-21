@@ -6,6 +6,7 @@ use App\Filament\Resources\DatabaseResource\Services\Backup\AbstractBackupRunner
 use Carbon\Carbon;
 use Filament\Forms\Components\Builder\Block;
 use Filament\Forms\Components\TextInput;
+use Illuminate\Support\Facades\File;
 
 class PostgreSQLBackupRunner extends AbstractBackupRunner
 {
@@ -27,34 +28,36 @@ class PostgreSQLBackupRunner extends AbstractBackupRunner
 
         $sqlFile = $path.'/'.substr($filename, 0, -3);
 
-        putenv('PGPASSWORD='.$options['password']);
+        // A dump left behind by a previous failed run would otherwise be appended to
+        File::delete($sqlFile);
 
         $baseCommand = 'pg_dump --username='.escapeshellarg($options['username']).
-            ' --port='.escapeshellarg($options['port']).
+            ' --port='.escapeshellarg($options['port'] ?: '5432').
             ' --host='.escapeshellarg($options['host']).
             ' -d '.escapeshellarg($options['database']);
+
+        // Per-process env, so it cannot leak into other jobs the way putenv() did
+        $env = ['PGPASSWORD' => $options['password']];
 
         ['data' => $dataTables, 'structure' => $structureOnlyTables] = $this->resolveTables($options);
 
         if (empty($dataTables) && empty($structureOnlyTables)) {
             // No selection made: back up the whole database (structure + data)
-            exec($baseCommand.' > '.escapeshellarg($sqlFile));
+            $this->shell($baseCommand.' > '.escapeshellarg($sqlFile), $env);
         } else {
             if (! empty($structureOnlyTables)) {
                 $tables = implode(' ', array_map(fn ($table) => '-t '.escapeshellarg($table), $structureOnlyTables));
-                exec($baseCommand.' --schema-only '.$tables.' > '.escapeshellarg($sqlFile));
+                $this->shell($baseCommand.' --schema-only '.$tables.' > '.escapeshellarg($sqlFile), $env);
             }
 
             if (! empty($dataTables)) {
                 $tables = implode(' ', array_map(fn ($table) => '-t '.escapeshellarg($table), $dataTables));
                 $redirect = file_exists($sqlFile) ? '>>' : '>';
-                exec($baseCommand.' '.$tables.' '.$redirect.' '.escapeshellarg($sqlFile));
+                $this->shell($baseCommand.' '.$tables.' '.$redirect.' '.escapeshellarg($sqlFile), $env);
             }
         }
 
-        exec('gzip -f '.escapeshellarg($sqlFile));
-
-        putenv('PGPASSWORD=');
+        $this->shell('gzip -f '.escapeshellarg($sqlFile));
 
         return [
             'path' => $path,
