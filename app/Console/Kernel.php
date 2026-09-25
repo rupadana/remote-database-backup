@@ -17,6 +17,10 @@ class Kernel extends ConsoleKernel
         $schedule->command('db:backup "* * * * *"')->everyMinute()->name('backup: every minute');
 
         $schedule->command('db:prune-backups')->daily()->name('backup: prune expired');
+
+        $schedule->command('db:checkpoint "0 0 * * *"')->daily()->name('checkpoint: daily');
+        $schedule->command('db:checkpoint "0 * * * *"')->hourly()->name('checkpoint: hourly');
+        $schedule->command('db:checkpoint "* * * * *"')->everyMinute()->name('checkpoint: every minute');
     }
 
     /**
