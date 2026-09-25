@@ -46,22 +46,27 @@ class CheckpointRestoreJob implements ShouldQueue
     {
         $sqlFile = Storage::path($checkpoint->sql_path);
 
+        // A .gz checkpoint is piped through gunzip first; a plain .sql file is just cat'd.
+        $source = str_ends_with($sqlFile, '.gz')
+            ? 'gunzip -c '.escapeshellarg($sqlFile)
+            : 'cat '.escapeshellarg($sqlFile);
+
         $command = match ($checkpoint->driver) {
             'pgsql' => sprintf(
-                'psql --username=%s --host=%s --port=%s -d %s -f %s',
+                '%s | psql --username=%s --host=%s --port=%s -d %s',
+                $source,
                 escapeshellarg($checkpoint->username),
                 escapeshellarg($checkpoint->host),
                 escapeshellarg($checkpoint->port ?: '5432'),
-                escapeshellarg($checkpoint->database),
-                escapeshellarg($sqlFile)
+                escapeshellarg($checkpoint->database)
             ),
             default => sprintf(
-                'mysql --user=%s --host=%s --port=%s %s < %s',
+                '%s | mysql --user=%s --host=%s --port=%s %s',
+                $source,
                 escapeshellarg($checkpoint->username),
                 escapeshellarg($checkpoint->host),
                 escapeshellarg($checkpoint->port ?: '3306'),
-                escapeshellarg($checkpoint->database),
-                escapeshellarg($sqlFile)
+                escapeshellarg($checkpoint->database)
             ),
         };
 
