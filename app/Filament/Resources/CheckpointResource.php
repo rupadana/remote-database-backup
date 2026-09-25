@@ -79,10 +79,11 @@ class CheckpointResource extends Resource
                 Select::make('cron')
                     ->label('Jadwal')
                     ->options([
-                        '* * * * *' => 'Every Minute',
-                        '0 * * * *' => 'Every Hour',
                         '0 0 * * *' => 'Every 00:00',
+                        '0 * * * *' => 'Every Hour',
+                        '* * * * *' => 'Every Minute',
                     ])
+                    ->default('0 0 * * *')
                     ->required(),
                 FileUpload::make('sql_path')
                     ->label('Checkpoint SQL File')
