@@ -8,13 +8,17 @@ services:
     ports:
       - 8080:80
       - 8443:443
-    # volumes:
-    #   - .:/app
+    volumes:
+      - storage-databases:/app/storage/databases
+      - storage-app:/app/storage/app
     networks:
       - app
     env_file: .env
-  
 
+
+volumes:
+  storage-databases:
+  storage-app:
 
 networks:
   app:
