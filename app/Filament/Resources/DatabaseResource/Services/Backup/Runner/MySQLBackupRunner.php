@@ -53,23 +53,13 @@ class MySQLBackupRunner extends AbstractBackupRunner
 
         $env = ['MYSQL_PWD' => $options['password']];
 
-        ['data' => $dataTables, 'structure' => $structureOnlyTables] = $this->resolveTables($options);
+        // Whole database; structure-only tables keep their CREATE TABLE but skip rows
+        $ignoreData = implode('', array_map(
+            fn ($table) => ' --ignore-table-data='.escapeshellarg($options['database'].'.'.$table),
+            $this->structureOnlyTables($options)
+        ));
 
-        if (empty($dataTables) && empty($structureOnlyTables)) {
-            // No selection made: back up the whole database (structure + data)
-            $this->shell($baseCommand.' '.escapeshellarg($options['database']).' > '.escapeshellarg($sqlFile), $env);
-        } else {
-            if (! empty($structureOnlyTables)) {
-                $tables = implode(' ', array_map('escapeshellarg', $structureOnlyTables));
-                $this->shell($baseCommand.' --no-data '.escapeshellarg($options['database']).' '.$tables.' > '.escapeshellarg($sqlFile), $env);
-            }
-
-            if (! empty($dataTables)) {
-                $tables = implode(' ', array_map('escapeshellarg', $dataTables));
-                $redirect = file_exists($sqlFile) ? '>>' : '>';
-                $this->shell($baseCommand.' '.escapeshellarg($options['database']).' '.$tables.' '.$redirect.' '.escapeshellarg($sqlFile), $env);
-            }
-        }
+        $this->shell($baseCommand.$ignoreData.' '.escapeshellarg($options['database']).' > '.escapeshellarg($sqlFile), $env);
 
         // Compress the dump
         $this->shell('gzip -f '.escapeshellarg($sqlFile));

@@ -63,42 +63,19 @@ abstract class AbstractBackupRunner
     }
 
     /**
-     * Resolve which tables to dump, dropping selections that no longer exist on
-     * the target database (selections copied by a replicate, dropped tables, ...)
-     * so the dump does not abort with "Couldn't find table".
+     * Tables whose data is skipped (structure only). Everything else, including
+     * tables created after this database was configured, is dumped in full.
      *
-     * Both lists empty means "dump the whole database".
-     *
-     * @return array{data: string[], structure: string[]}
+     * @return string[]
      */
-    protected function resolveTables(array $options): array
+    protected function structureOnlyTables(array $options): array
     {
-        $selected = array_filter($options['tables'] ?? []);
-        $structureOnly = array_filter($options['structure_only_tables'] ?? []);
-
-        // Only filter when the table list could actually be read; dumping the
-        // whole database on a transient connection failure would be worse.
-        if ($existing = static::listTables($options)) {
-            $selected = array_intersect($selected, $existing);
-            $structureOnly = array_intersect($structureOnly, $existing);
-        }
-
-        if (empty($selected)) {
-            return ['data' => [], 'structure' => []];
-        }
-
-        $structureOnly = array_intersect($structureOnly, $selected);
-
-        return [
-            'data' => array_values(array_diff($selected, $structureOnly)),
-            'structure' => array_values($structureOnly),
-        ];
+        return array_values(array_filter($options['structure_only_tables'] ?? []));
     }
 
     /**
      * Shared form schema letting the user, after connecting, checklist which
-     * tables to include in the backup and which of those should only have
-     * their structure (no data) backed up.
+     * tables should only have their structure (no data) backed up.
      */
     protected static function getTableSelectionSchema(): array
     {
@@ -139,16 +116,9 @@ abstract class AbstractBackupRunner
                             ->send();
                     }),
             ]),
-            CheckboxList::make('tables')
-                ->label('Tabel yang di-backup')
-                ->helperText('Kosongkan untuk backup seluruh tabel (struktur + data).')
-                ->options(fn (Get $get) => $get('tables_options') ?? [])
-                ->columns(2)
-                ->bulkToggleable()
-                ->searchable(),
             CheckboxList::make('structure_only_tables')
                 ->label('Backup Struktur Saja (tanpa data)')
-                ->helperText('Tabel yang dicentang di sini hanya akan di-backup strukturnya. Tabel lain yang dipilih di atas akan di-backup struktur + data.')
+                ->helperText('Semua tabel (termasuk tabel baru) di-backup struktur + data, kecuali tabel yang dicentang di sini: hanya strukturnya.')
                 ->options(fn (Get $get) => $get('tables_options') ?? [])
                 ->columns(2)
                 ->bulkToggleable()

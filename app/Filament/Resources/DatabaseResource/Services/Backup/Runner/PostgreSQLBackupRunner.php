@@ -39,23 +39,13 @@ class PostgreSQLBackupRunner extends AbstractBackupRunner
         // Per-process env, so it cannot leak into other jobs the way putenv() did
         $env = ['PGPASSWORD' => $options['password']];
 
-        ['data' => $dataTables, 'structure' => $structureOnlyTables] = $this->resolveTables($options);
+        // Whole database; structure-only tables keep their schema but skip rows
+        $excludeData = implode('', array_map(
+            fn ($table) => ' --exclude-table-data='.escapeshellarg($table),
+            $this->structureOnlyTables($options)
+        ));
 
-        if (empty($dataTables) && empty($structureOnlyTables)) {
-            // No selection made: back up the whole database (structure + data)
-            $this->shell($baseCommand.' > '.escapeshellarg($sqlFile), $env);
-        } else {
-            if (! empty($structureOnlyTables)) {
-                $tables = implode(' ', array_map(fn ($table) => '-t '.escapeshellarg($table), $structureOnlyTables));
-                $this->shell($baseCommand.' --schema-only '.$tables.' > '.escapeshellarg($sqlFile), $env);
-            }
-
-            if (! empty($dataTables)) {
-                $tables = implode(' ', array_map(fn ($table) => '-t '.escapeshellarg($table), $dataTables));
-                $redirect = file_exists($sqlFile) ? '>>' : '>';
-                $this->shell($baseCommand.' '.$tables.' '.$redirect.' '.escapeshellarg($sqlFile), $env);
-            }
-        }
+        $this->shell($baseCommand.$excludeData.' > '.escapeshellarg($sqlFile), $env);
 
         $this->shell('gzip -f '.escapeshellarg($sqlFile));
 

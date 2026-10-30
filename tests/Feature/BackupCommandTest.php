@@ -61,29 +61,43 @@ it('dumps mysql with --hex-blob so the file stays importable', function () {
     Process::assertRan(fn ($process) => str_contains($process->command, 'gzip -f'));
 });
 
-it('keeps --hex-blob on the per-table dumps too', function () {
+it('dumps every table and only skips data of structure-only tables', function () {
     Process::fake();
-    StubMySQLRunner::$existing = ['users', 'sessions'];
 
     (new StubMySQLRunner(mysqlOptions([
-        'tables' => ['users', 'sessions'],
+        'tables' => ['users'], // legacy whitelist, now ignored so new tables are not missed
         'structure_only_tables' => ['sessions'],
     ])))->run();
 
-    $dumps = [];
-
-    Process::assertRanTimes(function ($process) use (&$dumps) {
+    Process::assertRanTimes(function ($process) {
         if (! str_contains($process->command, 'mariadb-dump')) {
             return false;
         }
 
-        $dumps[] = $process->command;
+        expect($process->command)
+            ->toContain('--hex-blob')
+            ->toContain("--ignore-table-data='jinomnet_panel.sessions'")
+            ->not->toContain("'users'");
 
         return true;
-    }, 2);
+    }, 1);
+});
 
-    expect($dumps)->each->toContain('--hex-blob');
-    expect($dumps[0])->toContain('--no-data');   // structure-only pass runs first
+it('skips data of structure-only tables on postgres', function () {
+    Process::fake();
+
+    (new StubPostgresRunner([
+        'host' => '10.0.0.2',
+        'port' => '',
+        'database' => 'shop',
+        'username' => 'postgres',
+        'password' => 'pgp@ss',
+        'structure_only_tables' => ['audit_logs'],
+    ]))->run();
+
+    Process::assertRan(fn ($process) => str_contains($process->command, 'pg_dump')
+        && str_contains($process->command, "--exclude-table-data='audit_logs'")
+        && ! str_contains($process->command, ' -t '));
 });
 
 it('fails loudly instead of recording a broken backup', function () {
